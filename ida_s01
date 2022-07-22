@@ -1,0 +1,19 @@
+*&---------------------------------------------------------------------*
+*& Include          ZD0200_TEST_REP_3_S01
+*&---------------------------------------------------------------------*
+
+
+SELECTION-SCREEN BEGIN OF BLOCK b1 WITH FRAME TITLE TEXT-t01.
+  PARAMETERS :     p_tabnm TYPE dbtabl.
+SELECTION-SCREEN END OF BLOCK b1.
+
+
+*SELECT-OPTIONS : s_matnr FOR mara-matnr.
+*
+*SELECTION-SCREEN BEGIN OF SCREEN 101 AS WINDOW.
+*
+*
+*  PARAMETERS : p_kunnr TYPE mara-kunnr.
+*
+*
+*SELECTION-SCREEN END OF SCREEN 101.

@@ -1,0 +1,100 @@
+*&---------------------------------------------------------------------*
+*& Include          ZD0200_TEST_REP_3_TOP
+*&---------------------------------------------------------------------*
+TABLES : mara.
+
+**********************************************************************
+*ALV Related
+**********************************************************************
+
+*** Event Receiver
+CLASS gcl_event_receiver DEFINITION DEFERRED.
+
+**********************************************************************
+*Screen Elements
+**********************************************************************
+
+*** OK_CODE
+DATA : gv_ok_code TYPE sy-ucomm.
+
+*** Docking Containers
+DATA : go_dock_con01 TYPE REF TO cl_gui_docking_container
+      ,go_dock_con02 TYPE REF TO cl_gui_docking_container.
+
+*** Custom Containers
+DATA : go_cust_con01 TYPE REF TO cl_gui_custom_container
+      ,go_cust_con02 TYPE REF TO cl_gui_custom_container.
+
+*** Splitter
+DATA : go_splitter01 TYPE REF TO cl_gui_splitter_container.
+
+
+*** ALV Grid
+DATA : go_grid01 TYPE REF TO cl_gui_alv_grid
+      ,go_grid02 TYPE REF TO cl_gui_alv_grid.
+
+
+*** Sort Catalog
+DATA : gt_scat TYPE lvc_t_sort
+      ,gs_scat TYPE lvc_s_sort.
+
+
+*** Field catalog
+DATA : gt_fcat TYPE lvc_t_fcat
+      ,gs_fcat TYPE lvc_s_fcat.
+
+
+*** Layout
+DATA : gs_layout TYPE lvc_s_layo.
+
+
+*** F4
+DATA : gt_alv_f4 TYPE lvc_t_f4
+      ,gs_alv_f4 TYPE lvc_s_f4          .
+
+
+*** Exclude Func at ALV
+DATA : gt_exclude TYPE ui_functions.
+
+
+*** Variant
+DATA : gs_variant01 TYPE disvariant
+       ,gs_variant02 TYPE disvariant.
+
+**********************************************************************
+*CONSTANTS
+**********************************************************************
+
+CONSTANTS : gcs_stable TYPE lvc_s_stbl VALUE 'X'.
+
+**********************************************************************
+*Macros
+**********************************************************************
+
+DEFINE _refresh_screen.
+
+  CALL METHOD &1->refresh_table_display
+  EXPORTING
+    is_stable = gcs_stable.
+
+end-OF-DEFINITION.
+
+DEFINE _set_eq_range.
+
+  CLEAR &1.
+  &1-sign   = 'I'.
+  &1-option = 'EQ'.
+  &1-low    = &2.
+
+  APPEND &1.
+  CLEAR &1.
+
+end-OF-DEFINITION.
+
+
+
+**********************************************************************
+*--- Field Info Get
+**********************************************************************
+DATA : gt_field TYPE TABLE OF dfies
+       ,gs_field LIKE LINE OF gt_field.

@@ -1,0 +1,553 @@
+*&---------------------------------------------------------------------*
+*& Include          ZD0200_TEST_REP_3_F02
+*&---------------------------------------------------------------------*
+*&---------------------------------------------------------------------*
+*& Form create_object
+*&---------------------------------------------------------------------*
+*& text
+*&---------------------------------------------------------------------*
+*&      --> GT_DATA
+*&      --> GT_FCAT
+*&      --> GT_SCAT
+*&      --> GT_EXCLUDE
+*&      --> GT_ALV_F4
+*&      --> GS_LAYOUT
+*&      --> GS_VARIANT01
+*&      --> GO_DOCK_CON01
+*&      --> GO_GRID01
+*&---------------------------------------------------------------------*
+FORM create_object TABLES   pt_display
+                             pt_fcat
+                             pt_scat
+                             pt_exclude
+                     USING   pt_alv_f4
+                             ps_layout
+                             ps_variant
+                             po_dock_cont
+                             po_grid      TYPE REF TO cl_gui_alv_grid.
+
+
+  IF po_dock_cont IS NOT BOUND.
+
+    PERFORM create_container        USING po_dock_cont.
+
+    PERFORM set_grid                USING po_dock_cont
+                                          po_grid.
+
+    PERFORM set_event               USING po_grid.
+
+    PERFORM set_event_receiver      USING po_grid.
+
+    PERFORM set_f4_event            USING pt_alv_f4
+                                          po_grid.
+
+    PERFORM set_layout              USING po_grid
+                                 CHANGING ps_layout.
+
+    PERFORM set_exclude_func       TABLES pt_exclude
+                                    USING po_grid.
+
+    PERFORM set_variant             USING po_grid
+                                 CHANGING ps_variant.
+
+    PERFORM set_sortcat            TABLES pt_scat.
+
+    PERFORM set_fieldcat           TABLES pt_display
+                                          pt_fcat.
+
+    PERFORM set_detail_fcat        TABLES pt_fcat
+                                    USING po_grid.
+
+    PERFORM set_display_screen     TABLES pt_display
+                                          pt_fcat
+                                          pt_scat
+                                          pt_exclude
+                                    USING po_grid
+                                          ps_layout
+                                          ps_variant.
+
+  ELSE.
+
+    _refresh_screen po_grid.
+
+  ENDIF.
+ENDFORM.
+*&---------------------------------------------------------------------*
+*& Form create_container
+*&---------------------------------------------------------------------*
+*& text
+*&---------------------------------------------------------------------*
+*&      --> PO_DOCK_CONT
+*&---------------------------------------------------------------------*
+FORM create_container  USING  po_doc_cont TYPE REF TO cl_gui_docking_container.
+
+  CREATE OBJECT po_doc_cont
+    EXPORTING
+      extension = 10000.
+ENDFORM.
+*&---------------------------------------------------------------------*
+*& Form set_grid
+*&---------------------------------------------------------------------*
+*& text
+*&---------------------------------------------------------------------*
+*&      --> PO_DOCK_CONT
+*&      --> PO_GRID
+*&---------------------------------------------------------------------*
+FORM set_grid  USING    po_doc_cont TYPE REF TO cl_gui_docking_container
+                        po_grid TYPE REF TO cl_gui_alv_grid.
+
+
+  CREATE OBJECT po_grid
+    EXPORTING
+      i_parent = po_doc_cont.
+
+
+ENDFORM.
+*&---------------------------------------------------------------------*
+*& Form set_event
+*&---------------------------------------------------------------------*
+*& text
+*&---------------------------------------------------------------------*
+*&      --> PO_GRID
+*&---------------------------------------------------------------------*
+FORM set_event USING  po_grid TYPE REF TO cl_gui_alv_grid.
+
+
+
+  CALL METHOD po_grid->register_edit_event
+    EXPORTING
+      i_event_id = cl_gui_alv_grid=>mc_evt_enter.
+
+  CALL METHOD po_grid->register_edit_event
+    EXPORTING
+      i_event_id = cl_gui_alv_grid=>mc_evt_modified.
+
+ENDFORM.
+*&---------------------------------------------------------------------*
+*& Form set_event_receiver
+*&---------------------------------------------------------------------*
+*& text
+*&---------------------------------------------------------------------*
+*&      --> PO_GRID
+*&---------------------------------------------------------------------*
+FORM set_event_receiver  USING    po_grid TYPE REF TO cl_gui_alv_grid.
+
+
+  DATA : lo_receiver TYPE REF TO gcl_event_receiver.
+
+
+  IF lo_receiver IS NOT BOUND.
+    CREATE OBJECT lo_receiver.
+  ENDIF.
+*  CASE po_grid.
+*  ENDCASE.
+
+  CASE po_grid.
+    WHEN go_grid01.
+      SET HANDLER lo_receiver->handle_hotspot_click FOR po_grid.
+  ENDCASE.
+
+*  SET HANDLER lo_Receiver->handle_top_of_page  FOR po_grid.
+  SET HANDLER lo_receiver->handle_double_click FOR po_grid.
+  SET HANDLER lo_receiver->handle_toolbar       FOR po_grid.
+  SET HANDLER lo_receiver->handle_user_command  FOR po_grid.
+  SET HANDLER lo_receiver->handle_on_f4         FOR po_grid.
+  SET HANDLER lo_receiver->handle_data_changed  FOR po_grid.
+
+ENDFORM.
+*&---------------------------------------------------------------------*
+*& Form set_f4_event
+*&---------------------------------------------------------------------*
+*& text
+*&---------------------------------------------------------------------*
+*&      --> PT_ALV_F4
+*&      --> PO_GRID
+*&---------------------------------------------------------------------*
+FORM set_f4_event  USING pt_alv_f4
+                         po_grid TYPE REF TO cl_gui_alv_grid.
+
+*
+*  CASE po_grid.
+*    WHEN go_grid01.
+**      PERFORM alv_set_f4_field  USING pt_alv_f4
+**                                      'MATNR'.
+*    WHEN go_grid02.
+*
+*      PERFORM alv_set_f4_field  USING pt_alv_f4
+*                                      'EBELN'.
+*  ENDCASE.
+*
+*  CHECK pt_alv_f4 IS NOT INITIAL.
+*
+*  CALL METHOD po_grid->register_f4_for_fields
+*    EXPORTING
+*      it_f4 = pt_alv_f4.
+
+ENDFORM.
+*&---------------------------------------------------------------------*
+*& Form set_layout
+*&---------------------------------------------------------------------*
+*& text
+*&---------------------------------------------------------------------*
+*&      --> PO_GRID
+*&      <-- PS_LAYOUT
+*&---------------------------------------------------------------------*
+FORM set_layout  USING po_grid   TYPE REF TO cl_gui_alv_grid
+                 CHANGING ps_layout TYPE lvc_s_layo.
+
+
+*case po_grid.
+*  endcase.
+
+
+  CLEAR : ps_layout.
+
+  "Layout Setting
+  ps_layout-cwidth_opt = 'X'.    "Column Width ### ####
+*  gs_layout-no_rowmark = 'X'.
+  ps_layout-sel_mode   = 'D'.    "Row ####
+  ps_layout-zebra      = 'X'.
+  ps_layout-no_totline = space.
+  ps_layout-numc_total = 'X'.
+*  GS_LAYOUT-CTAB_FNAME = 'T_SCOL'.
+*  gs_layout-stylefname = 'CELLSTYLE'.
+
+  PERFORM get_alv_title USING po_grid
+                              ps_layout.
+
+ENDFORM.
+*&---------------------------------------------------------------------*
+*& Form set_exclude_func
+*&---------------------------------------------------------------------*
+*& text
+*&---------------------------------------------------------------------*
+*&      --> PT_EXCLUDE
+*&      --> PO_GRID
+*&---------------------------------------------------------------------*
+FORM set_exclude_func TABLES   pt_exclude
+                       USING    po_grid.
+
+  REFRESH pt_exclude.
+
+  "Button# ## ##### CL_GUI_ALV_GRID=>MC_FC_EXCL_ALL# ####.
+  PERFORM append_exclude_functions
+         TABLES pt_exclude[]
+*         USING cl_gui_alv_grid=>mc_fc_excl_all.
+         USING : cl_gui_alv_grid=>mc_fc_loc_undo, " #### &LOCAL&UNDO
+                 cl_gui_alv_grid=>mc_fc_loc_copy,          " # ##.
+                 cl_gui_alv_grid=>mc_fc_refresh,
+                 cl_gui_alv_grid=>mc_fc_loc_copy_row,      " # ##.
+                 cl_gui_alv_grid=>mc_fc_loc_cut,           " ##.
+                 cl_gui_alv_grid=>mc_fc_loc_delete_row,    " ###.
+                 cl_gui_alv_grid=>mc_fc_loc_insert_row,    " ###.
+                 cl_gui_alv_grid=>mc_fc_loc_append_row,    " ####.
+                 cl_gui_alv_grid=>mc_fc_loc_move_row,
+                 cl_gui_alv_grid=>mc_fc_loc_paste,         " ####.
+                 cl_gui_alv_grid=>mc_fc_loc_paste_new_row. " ####.
+*                 cl_gui_alv_grid=>mc_mb_filter. " Filter.
+ENDFORM.
+*&---------------------------------------------------------------------*
+*& Form set_variant
+*&---------------------------------------------------------------------*
+*& text
+*&---------------------------------------------------------------------*
+*&      --> PO_GRID
+*&      <-- PS_VARIANT
+*&---------------------------------------------------------------------*
+FORM set_variant  USING po_grid TYPE REF TO cl_gui_alv_grid
+                  CHANGING ps_variant STRUCTURE disvariant.
+
+
+  DATA : lv_flag TYPE numc2.
+
+  CASE po_grid.
+    WHEN go_grid01.
+      lv_flag = '01'.
+    WHEN go_grid02.
+      lv_flag = '02'.
+  ENDCASE.
+
+  "Layout Variant ## ##
+  ps_variant-report   = sy-repid.
+  ps_variant-username = sy-uname.
+*  CONCATENATE '/' sy-uname lv_flag INTO ps_variant-variant.
+*  gv_save = 'A'.     " Layout Variant #### ##
+
+  CALL FUNCTION 'REUSE_ALV_VARIANT_DEFAULT_GET'
+* EXPORTING
+*   I_SAVE              = ' '
+    CHANGING
+      cs_variant    = ps_variant
+    EXCEPTIONS
+      wrong_input   = 1
+      not_found     = 2
+      program_error = 3
+      OTHERS        = 4.
+
+  IF sy-subrc <> 0.
+* Implement suitable error handling here
+  ENDIF.
+
+
+ENDFORM.
+*&---------------------------------------------------------------------*
+*& Form set_sortcat
+*&---------------------------------------------------------------------*
+*& text
+*&---------------------------------------------------------------------*
+*&      --> PT_SCAT
+*&---------------------------------------------------------------------*
+FORM set_sortcat  TABLES    pt_scat STRUCTURE lvc_s_sort.
+
+ENDFORM.
+*&---------------------------------------------------------------------*
+*& Form set_fieldcat
+*&---------------------------------------------------------------------*
+*& text
+*&---------------------------------------------------------------------*
+*&      --> PT_DISPLAY
+*&      --> PT_FCAT
+*&---------------------------------------------------------------------*
+FORM set_fieldcat  TABLES   pt_display TYPE table
+                            pt_fcat TYPE lvc_t_fcat.
+
+  DATA: ls_fcat TYPE lvc_s_fcat.
+
+*Returning  VALUE( RT_FCAT )  TYPE LVC_T_FCAT
+  DATA: lo_columns      TYPE REF TO cl_salv_columns_table,
+        lo_aggregations TYPE REF TO cl_salv_aggregations,
+        lo_salv_table   TYPE REF TO cl_salv_table,
+        lr_table        TYPE REF TO data.
+
+  FIELD-SYMBOLS: <table> TYPE STANDARD TABLE.
+
+* create unprotected table from import data
+  CREATE DATA lr_table LIKE pt_display[].
+  ASSIGN lr_table->* TO <table>.
+
+*...New SALV Instance ...............................................
+  TRY.
+      cl_salv_table=>factory(
+        EXPORTING
+          list_display = abap_false
+        IMPORTING
+          r_salv_table = lo_salv_table
+        CHANGING
+          t_table      = <table> ).
+    CATCH cx_salv_msg.                                  "#EC NO_HANDLER
+  ENDTRY.
+
+* get columns object (raw fieldcatalog)
+  lo_columns  = lo_salv_table->get_columns( ).
+
+* get aggregationss object (sorts)
+  lo_aggregations = lo_salv_table->get_aggregations( ).
+
+  pt_fcat[] =
+    cl_salv_controller_metadata=>get_lvc_fieldcatalog(
+    r_columns      = lo_columns
+    r_aggregations = lo_aggregations ).
+
+ENDFORM.
+*&---------------------------------------------------------------------*
+*& Form set_detail_fcat
+*&---------------------------------------------------------------------*
+*& text
+*&---------------------------------------------------------------------*
+*&      --> PT_FCAT
+*&      --> PO_GRID
+*&---------------------------------------------------------------------*
+FORM set_detail_fcat   TABLES   pt_fcat
+                      USING    po_grid TYPE REF TO cl_gui_alv_grid.
+
+*  PERFORM set_common_fieldcat TABLES pt_fcat.
+
+ENDFORM.
+*&---------------------------------------------------------------------*
+*& Form set_display_screen
+*&---------------------------------------------------------------------*
+*& text
+*&---------------------------------------------------------------------*
+*&      --> PT_DISPLAY
+*&      --> PT_FCAT
+*&      --> PT_SCAT
+*&      --> PT_EXCLUDE
+*&      --> PO_GRID
+*&      --> PS_LAYOUT
+*&      --> PS_VARIANT
+*&---------------------------------------------------------------------*
+FORM set_display_screen  TABLES   pt_display
+                                  pt_fcat
+                                  pt_scat
+                                  pt_exclude
+                         USING    po_grid TYPE REF TO cl_gui_alv_grid
+                                  ps_layout
+                                  ps_variant.
+
+
+  CALL METHOD po_grid->set_table_for_first_display
+    EXPORTING
+      is_layout            = ps_layout
+      is_variant           = ps_variant
+      it_toolbar_excluding = pt_exclude[]
+      i_save               = 'A'
+*     i_default            = gc_x
+    CHANGING
+      it_fieldcatalog      = pt_fcat[]
+      it_outtab            = pt_display[]
+      it_sort              = pt_scat[]
+*     it_filter            =
+    .
+
+ENDFORM.
+*&---------------------------------------------------------------------*
+*& Form append_exclude_functions
+*&---------------------------------------------------------------------*
+*& text
+*&---------------------------------------------------------------------*
+*&      --> PT_EXCLUDE[]
+*&      --> CL_GUI_ALV_GRID=>MC_FC_LOC_UND
+*&---------------------------------------------------------------------*
+FORM append_exclude_functions TABLES pt_table
+                               USING pv_value.
+  DATA : ls_exclude TYPE ui_func.
+
+  ls_exclude = pv_value.
+  APPEND ls_exclude TO pt_table.
+
+ENDFORM.
+*&---------------------------------------------------------------------*
+*& Form get_alv_title
+*&---------------------------------------------------------------------*
+*& text
+*&---------------------------------------------------------------------*
+*&      --> PO_GRID
+*&      --> PS_LAYOUT
+*&---------------------------------------------------------------------*
+FORM get_alv_title  USING    po_grid TYPE REF TO cl_gui_alv_grid
+                            ps_layout TYPE lvc_s_layo.
+
+  DATA : lv_title TYPE char100,
+         lv_cnt   TYPE int4.
+
+  ps_layout-smalltitle = 'X'.
+*PS_LAYOUT-GRID_TITLEt.
+
+ENDFORM.
+*&---------------------------------------------------------------------*
+*& Form call_ida_process
+*&---------------------------------------------------------------------*
+*& text
+*&---------------------------------------------------------------------*
+*& -->  p1        text
+*& <--  p2        text
+*&---------------------------------------------------------------------*
+FORM call_ida_process .
+
+
+
+  DATA : lt_select TYPE lvc_t_roid
+         ,ls_select LIKE LINE OF lt_select.
+
+
+
+  PERFORM get_selected_lines TABLES lt_select
+                              USING go_grid01.
+
+  IF lt_select IS NOT INITIAL.
+
+    PERFORM init_ida_process TABLES lt_select
+                                    gt_field.
+
+
+
+
+  ELSE.
+
+
+  ENDIF.
+ENDFORM.
+*&---------------------------------------------------------------------*
+*& Form get_selected_lines
+*&---------------------------------------------------------------------*
+*& text
+*&---------------------------------------------------------------------*
+*&      --> GT_FIELD
+*&      --> GO_GRID01
+*&---------------------------------------------------------------------*
+FORM get_selected_lines  TABLES   pt_field STRUCTURE lvc_s_roid
+                         USING    po_grid  TYPE REF TO cl_gui_alv_grid.
+
+  CALL METHOD po_grid->get_selected_rows
+    IMPORTING
+      et_row_no = pt_field[].
+
+ENDFORM.
+*&---------------------------------------------------------------------*
+*& Form init_ida_process
+*&---------------------------------------------------------------------*
+*& text
+*&---------------------------------------------------------------------*
+*&      --> LT_SELECT
+*&      --> GT_FIELD
+*&---------------------------------------------------------------------*
+FORM init_ida_process  TABLES   pt_select STRUCTURE lvc_s_roid
+                                pt_field  STRUCTURE gs_field.
+
+  DATA : ls_select LIKE LINE OF pt_select
+         ,ls_field LIKE LINE OF pt_field.
+
+  RANGES : lr_name FOR ls_field-fieldname.
+
+**--- IDA Test
+
+*1 Set Initial IDA ALV Data
+  CHECK cl_salv_gui_table_ida=>db_capabilities( )->is_table_supported( iv_ddic_table_name = p_tabnm ).
+
+  DATA(o_ida) = cl_salv_gui_table_ida=>create( iv_table_name = p_tabnm ).
+
+  IF cl_salv_gui_table_ida=>db_capabilities( )->is_max_rows_recommended( ).
+
+    o_ida->set_maximum_number_of_rows( iv_number_of_rows = 2000 ).
+
+  ENDIF.
+
+*2... Get Field Catalog reference
+  DATA(lo_fldcatlog) = o_ida->field_catalog( ).
+
+*3... Get all columns of ALV
+  lo_fldcatlog->get_all_fields( IMPORTING ets_field_names = DATA(lts_field_names) ).
+
+**  PERFORM sort_ida_table CHANGING o_ida.
+*
+
+*--- Set Default Fields ( Key fields )
+  LOOP AT pt_field INTO ls_field.
+
+    IF ls_field-keyflag EQ 'X'.
+
+      _set_eq_range lr_name ls_field-fieldname .
+
+    ENDIF.
+
+  ENDLOOP.
+
+
+
+  LOOP AT pt_select INTO ls_select.
+
+    READ TABLE pt_field INTO ls_field INDEX ls_select-row_id.
+    CHECK ls_field-keyflag NE 'X'.
+    _set_eq_range lr_name ls_field-fieldname .
+  ENDLOOP.
+
+
+  DELETE lts_field_names WHERE table_line NOT IN lr_name.
+
+
+
+
+  lo_fldcatlog->set_available_fields( lts_field_names ).
+  o_ida->fullscreen( )->display( ).
+
+ENDFORM.

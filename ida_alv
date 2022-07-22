@@ -1,0 +1,133 @@
+*&---------------------------------------------------------------------*
+*& Include          ZD0200_TEST_REP_3_ALV
+*&---------------------------------------------------------------------*
+*&---------------------------------------------------------------------*
+*& Include          ZMMR0430ALV
+*&---------------------------------------------------------------------*
+*&---------------------------------------------------------------------*
+*& Form handle_hotspot_click
+*&---------------------------------------------------------------------*
+*& text
+*&---------------------------------------------------------------------*
+*&      --> E_ROW_ID
+*&      --> E_COLUMN_ID
+*&      --> SENDER
+*&---------------------------------------------------------------------*
+FORM handle_hotspot_click  USING    pv_row_id
+                                    pv_column_id
+                                    po_sender TYPE REF TO cl_gui_alv_grid.
+
+  CASE po_sender.
+    WHEN go_grid01.
+    WHEN OTHERS.
+  ENDCASE.
+
+
+ENDFORM.
+*&---------------------------------------------------------------------*
+*& Form handle_Data_chaged
+*&---------------------------------------------------------------------*
+*& text
+*&---------------------------------------------------------------------*
+*&      --> ER_DATA_CHANGED
+*&      --> SENDER
+*&---------------------------------------------------------------------*
+FORM handle_data_chaged  USING po_changed TYPE REF TO cl_alv_changed_data_protocol
+                               pv_uocomm.
+
+  DATA : ls_good TYPE lvc_s_modi.
+
+  LOOP AT po_changed->mt_good_cells INTO ls_good.
+
+
+  ENDLOOP.
+
+
+ENDFORM.
+FORM get_cell_value USING po_chaged TYPE REF TO cl_alv_changed_data_protocol
+                          pv_rod_id
+                          pv_fieldname
+                          pv_value.
+
+  CALL METHOD po_chaged->get_cell_value
+    EXPORTING
+      i_row_id    = pv_rod_id
+      i_fieldname = pv_fieldname
+    IMPORTING
+      e_value     = pv_value.
+
+
+ENDFORM.
+FORM set_cell_value USING po_chaged TYPE REF TO cl_alv_changed_data_protocol
+                          pv_rod_id
+                          pv_fieldname
+                          pv_value.
+
+  CALL METHOD po_chaged->modify_cell
+    EXPORTING
+      i_row_id    = pv_rod_id
+      i_fieldname = pv_fieldname
+      i_value     = pv_value.
+
+
+ENDFORM.
+*&---------------------------------------------------------------------*
+*& Form handle_Data_changed_finished
+*&---------------------------------------------------------------------*
+*& text
+*&---------------------------------------------------------------------*
+*&      --> E_MODIFIED
+*&      --> ET_GOOD_CELLS
+*&---------------------------------------------------------------------*
+FORM handle_data_changed_finished  USING pv_modified
+                                         po_good_cells TYPE lvc_t_modi.
+
+ENDFORM.
+*&---------------------------------------------------------------------*
+*& Form HANDLE_ONF4
+*&---------------------------------------------------------------------*
+*& text
+*&---------------------------------------------------------------------*
+*&      --> E_FIELDNAME
+*&      --> ES_ROW_NO
+*&      --> ER_EVENT_DATA
+*&---------------------------------------------------------------------*
+FORM handle_on_f4  USING e_fieldname     TYPE lvc_fname
+                         e_fieldvalue    TYPE lvc_value
+                         es_row_no       TYPE lvc_s_roid
+                         er_event_data   TYPE REF TO cl_alv_event_data
+                         et_bad_cells    TYPE lvc_t_modi
+                         e_display       TYPE char01
+                         po_sender       TYPE REF TO cl_gui_alv_grid.
+
+
+
+ENDFORM.
+*&---------------------------------------------------------------------*
+*& Form HANDLE_TOOLBAR
+*&---------------------------------------------------------------------*
+*& text
+*&---------------------------------------------------------------------*
+*&      --> E_OBJECT
+*&      --> E_INTERACTIVE
+*&---------------------------------------------------------------------*
+FORM handle_toolbar  USING po_object TYPE REF TO cl_alv_event_toolbar_set
+                           pv_interactive
+                           po_grid   TYPE REF TO cl_gui_alv_grid.
+
+  DATA ls_toolbar  TYPE stb_button.
+
+
+ENDFORM.
+*&---------------------------------------------------------------------*
+*& Form alv_user_command
+*&---------------------------------------------------------------------*
+*& text
+*&---------------------------------------------------------------------*
+*&      --> E_UCOMM
+*&      --> SENDER
+*&---------------------------------------------------------------------*
+FORM alv_user_command  USING    pv_ucomm TYPE sy-ucomm
+                                po_grid  TYPE REF TO cl_gui_alv_grid.
+
+ENDFORM.

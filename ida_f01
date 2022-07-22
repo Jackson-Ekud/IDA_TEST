@@ -1,0 +1,169 @@
+*&---------------------------------------------------------------------*
+*& Include          ZD0200_TEST_REP_3_F01
+*&---------------------------------------------------------------------*
+*&---------------------------------------------------------------------*
+*& Form set_init_ida_table
+*&---------------------------------------------------------------------*
+*& text
+*&---------------------------------------------------------------------*
+*& -->  p1        text
+*& <--  p2        text
+*&---------------------------------------------------------------------*
+FORM set_init_ida_table .
+
+
+**--- IDA Test
+*
+*  CHECK cl_salv_gui_table_ida=>db_capabilities( )->is_table_supported( iv_ddic_table_name = p_tabnm ).
+*
+*  DATA(o_ida) = cl_salv_gui_table_ida=>create( iv_table_name = p_tabnm ).
+*
+*  IF cl_salv_gui_table_ida=>db_capabilities( )->is_max_rows_recommended( ).
+*
+*    o_ida->set_maximum_number_of_rows( iv_number_of_rows = 2000 ).
+*
+*  ENDIF.
+*
+**  PERFORM get_raw_fcat TABLES gt_fcat
+**                        USING p_tabnm.
+*
+**  PERFORM sort_ida_table CHANGING o_ida.
+*
+*  o_ida->fullscreen( )->display( ).
+
+
+ENDFORM.
+*&---------------------------------------------------------------------*
+*& Form sort_ida_table
+*&---------------------------------------------------------------------*
+*& text
+*&---------------------------------------------------------------------*
+*& -->  p1        text
+*& <--  p2        text
+*&---------------------------------------------------------------------*
+FORM sort_ida_table CHANGING po_ida TYPE REF TO if_salv_gui_table_ida.
+
+*  DATA : lv_matnr TYPE RANGE OF mara-matnr.
+*
+*  DATA(o_sel) = NEW cl_salv_range_tab_collector( ).
+*
+*
+*  LOOP AT s_matnr INTO DATA(lr_matnr).
+*
+*    INSERT VALUE #( sign   = 'I'
+*                    option = 'BT'
+*                    low    = lr_matnr-low
+*                    high   = lr_matnr-high ) INTO TABLE lv_matnr.
+*
+*  ENDLOOP.
+*
+*  o_sel->add_ranges_for_name( iv_name   = 'MATNR'
+*                              it_ranges = lv_matnr ).
+*
+*  o_sel->get_collected_ranges( IMPORTING et_named_ranges = DATA(lt_named_ranges) ).
+*
+*  po_ida->set_select_options( it_ranges = lt_named_ranges ).
+
+ENDFORM.
+*&---------------------------------------------------------------------*
+*& Form get_raw_fcat
+*&---------------------------------------------------------------------*
+*& text
+*&---------------------------------------------------------------------*
+*&      --> GT_FCAT
+*&      --> P_TABNM
+*&---------------------------------------------------------------------*
+FORM get_raw_fcat  TABLES   pt_fcat STRUCTURE lvc_s_fcat
+                   USING    pc_tabnm.
+
+  DATA: ls_fcat TYPE lvc_s_fcat.
+
+*Returning  VALUE( RT_FCAT )  TYPE LVC_T_FCAT
+  DATA: lo_columns      TYPE REF TO cl_salv_columns_table,
+        lo_aggregations TYPE REF TO cl_salv_aggregations,
+        lo_salv_table   TYPE REF TO cl_salv_table,
+        lr_table        TYPE REF TO data.
+
+  FIELD-SYMBOLS: <table> TYPE STANDARD TABLE.
+  FIELD-SYMBOLS : <fs_table> TYPE table.
+
+  ASSIGN (pc_tabnm) TO <fs_table>.
+
+
+
+
+* create unprotected table from import data
+  CREATE DATA lr_table LIKE <fs_table>.
+  ASSIGN lr_table->* TO <table>.
+
+*...New SALV Instance ...............................................
+  TRY.
+      cl_salv_table=>factory(
+        EXPORTING
+          list_display = abap_false
+        IMPORTING
+          r_salv_table = lo_salv_table
+        CHANGING
+          t_table      = <table> ).
+    CATCH cx_salv_msg.                                  "#EC NO_HANDLER
+  ENDTRY.
+
+* get columns object (raw fieldcatalog)
+  lo_columns  = lo_salv_table->get_columns( ).
+
+* get aggregationss object (sorts)
+  lo_aggregations = lo_salv_table->get_aggregations( ).
+
+  pt_fcat[] =
+    cl_salv_controller_metadata=>get_lvc_fieldcatalog(
+    r_columns      = lo_columns
+    r_aggregations = lo_aggregations ).
+
+
+
+
+ENDFORM.
+*&---------------------------------------------------------------------*
+*& Form get_structure
+*&---------------------------------------------------------------------*
+*& text
+*&---------------------------------------------------------------------*
+*&      --> P_TABNM
+*&---------------------------------------------------------------------*
+FORM get_structure  TABLES    pt_fields
+                     USING    pc_tabnm.
+
+  DATA : lv_tabname TYPE ddobjname.
+
+  CLEAR lv_tabname.
+
+  lv_tabname = pc_tabnm.
+
+  CALL FUNCTION 'DDIF_FIELDINFO_GET'
+    EXPORTING
+      tabname   = lv_tabname
+*     FIELDNAME = ' '
+*     LANGU     = SY-LANGU
+*     LFIELDNAME           = ' '
+*     ALL_TYPES = ' '
+*     GROUP_NAMES          = ' '
+*     UCLEN     =
+*     DO_NOT_WRITE         = ' '
+* IMPORTING
+*     X030L_WA  =
+*     DDOBJTYPE =
+*     DFIES_WA  =
+*     LINES_DESCR          =
+    TABLES
+      dfies_tab = pt_fields
+*     FIXED_VALUES         =
+ EXCEPTIONS
+     NOT_FOUND = 1
+     INTERNAL_ERROR       = 2
+     OTHERS    = 3
+    .
+  IF sy-subrc <> 0.
+* Implement suitable error handling here
+  ENDIF.
+
+ENDFORM.

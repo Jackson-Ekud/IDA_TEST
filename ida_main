@@ -1,0 +1,38 @@
+*&---------------------------------------------------------------------*
+*& Report ZD0200_TEST_REP_3
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT zmm_migration_02 MESSAGE-ID zexp.
+
+
+INCLUDE ZMM_MIGRAION02_TOP.
+INCLUDE ZMM_MIGRAION02_ALV.
+INCLUDE ZMM_MIGRAION02_C01.
+INCLUDE ZMM_MIGRAION02_S01.
+INCLUDE ZMM_MIGRAION02_F01.
+INCLUDE ZMM_MIGRAION02_F02.
+INCLUDE ZMM_MIGRAION02_O01.
+INCLUDE ZMM_MIGRAION02_I01.
+
+
+INITIALIZATION.
+
+
+AT SELECTION-SCREEN.
+
+
+START-OF-SELECTION.
+
+  PERFORM get_structure TABLES gt_field
+                         USING p_tabnm.
+*  PERFORM set_init_ida_table.
+
+
+end-of-SELECTION.
+
+  IF gt_field IS NOT INITIAL.
+    CALL SCREEN 100.
+  ELSE.
+    MESSAGE s000 WITH TEXT-e01 DISPLAY LIKE 'E'.
+  ENDIF.
